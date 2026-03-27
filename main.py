@@ -3,7 +3,8 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-
+from prompts import system_prompt
+from functions.call_function import available_functions
 
 def main():
     load_dotenv()
@@ -17,14 +18,22 @@ def main():
     args = parser.parse_args()
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
     response = client.models.generate_content(model='gemini-2.5-flash', 
-    contents=messages)
+    contents=messages, config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt),)
     if response.usage_metadata is None:
        raise RuntimeError("Failed API request")
     if args.verbose:
        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
        print(f"User prompt: {args.user_prompt}")
-    print(response.text)
+    #print(response.text)
+    #print(f"Calling function: {response.function_calls.name}({response.function_calls.args})")
+    if response.candidates[0].content.parts[0].function_call:
+        function_call = response.candidates[0].content.parts[0].function_call
+        print(f"Calling function: {function_call.name}({function_call.args})")
+    else:
+        print(response.text)
+        
+    
 
 if __name__ == "__main__":
     main()
