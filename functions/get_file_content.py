@@ -1,5 +1,6 @@
 import os
 from config import *
+from google.genai import types
 
 def get_file_content(working_directory, file_path):
     try:
@@ -26,3 +27,17 @@ def get_file_content(working_directory, file_path):
         print(f"Error: {e}")
         
         
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Prints out the contents of the file after truncation at MAX_CHARS",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file whose content should be read, relative to the working directory",
+            ),
+        },
+        required = ["file_path"]
+    ),
+)
